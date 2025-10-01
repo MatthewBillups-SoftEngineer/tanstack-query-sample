@@ -22,7 +22,7 @@ export class MoviesService {
   private readonly omdbBaseUrl = 'http://www.omdbapi.com/';
 
   constructor(private httpService: HttpService) {
-    console.log('OMDB API Key:', this.omdbApiKey);
+    // console.log('OMDB API Key:', this.omdbApiKey);
   }
 
   async searchMovies(query: string, page: number = 1): Promise<SearchResponse> {
