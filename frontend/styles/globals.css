@@ -190,3 +190,39 @@ h1 {
     height: 350px;
   }
 }
+
+.search-info {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.results-count {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.end-of-results {
+  text-align: center;
+  padding: 2rem;
+  color: #95a5a6;
+  font-style: italic;
+  border-top: 1px solid #ecf0f1;
+  margin-top: 2rem;
+}
+
+/* Smooth loading animations */
+.movie-card {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.movies-grid.loading .movie-card {
+  opacity: 0.6;
+}
