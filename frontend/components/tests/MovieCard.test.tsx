@@ -127,6 +127,6 @@ describe('MovieCard', () => {
         const image = screen.getByAltText('Test Movie');
         fireEvent.error(image);
 
-        expect(image).toHaveAttribute('src', '/placeholder-poster.jpg');
+        expect(image).toHaveAttribute('src', '/placeholder-poster.png');
     });
 });

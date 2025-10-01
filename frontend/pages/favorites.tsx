@@ -1,8 +1,31 @@
-import { useFavorites } from '../hooks/api'
-import MovieCard from '../components/MovieCard'
+import { useState, useEffect } from 'react';
+import { useFavorites } from '../hooks/api';
+import MovieCard from '../components/MovieCard';
 
 export default function FavoritesPage() {
-  const { data: favorites = [], isLoading, error } = useFavorites()
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const { data: favorites = [], isLoading, error } = useFavorites();
+
+  // Show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <div className="container">
@@ -22,6 +45,17 @@ export default function FavoritesPage() {
           ))}
         </div>
       )}
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          className="scroll-to-top"
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
+      )}
     </div>
-  )
+  );
 }

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInfiniteSearchMovies, useFavorites, useAddToFavorites, useRemoveFromFavorites } from '../api';
@@ -6,17 +8,16 @@ import { useInfiniteSearchMovies, useFavorites, useAddToFavorites, useRemoveFrom
 global.fetch = jest.fn();
 
 const createWrapper = () => {
-    const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: { retry: false },
-        },
-    });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
 
-    return ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client= { queryClient } >
-        { children }
-        </QueryClientProvider>
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      children
+    );
 };
 
 describe('API Hooks', () => {
@@ -68,6 +69,18 @@ describe('API Hooks', () => {
 
             expect(result.current.error).toEqual(new Error('API Error'));
         });
+
+        it('does not fetch when query is empty', async () => {
+            const { result } = renderHook(() => useInfiniteSearchMovies(''), {
+                wrapper: createWrapper(),
+            });
+
+            await waitFor(() => {
+                expect(result.current.isLoading).toBe(false);
+            });
+
+            expect(fetch).not.toHaveBeenCalled();
+        });
     });
 
     describe('useFavorites', () => {
@@ -96,6 +109,20 @@ describe('API Hooks', () => {
 
             expect(result.current.data).toEqual(mockFavorites);
             expect(fetch).toHaveBeenCalledWith('http://localhost:3001/favorites');
+        });
+
+        it('handles favorites fetch error', async () => {
+            (fetch as jest.Mock).mockRejectedValueOnce(new Error('Network Error'));
+
+            const { result } = renderHook(() => useFavorites(), {
+                wrapper: createWrapper(),
+            });
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            expect(result.current.error).toEqual(new Error('Network Error'));
         });
     });
 
@@ -128,6 +155,29 @@ describe('API Hooks', () => {
                 body: JSON.stringify(mockMovie),
             });
         });
+
+        it('handles add to favorites error', async () => {
+            const mockMovie = {
+                imdbID: 'tt1234567',
+                Title: 'Test Movie',
+                Year: '2023',
+                Poster: 'http://test.com/poster.jpg'
+            };
+
+            (fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to add'));
+
+            const { result } = renderHook(() => useAddToFavorites(), {
+                wrapper: createWrapper(),
+            });
+
+            result.current.mutate(mockMovie);
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            expect(result.current.error).toEqual(new Error('Failed to add'));
+        });
     });
 
     describe('useRemoveFromFavorites', () => {
@@ -149,6 +199,22 @@ describe('API Hooks', () => {
             expect(fetch).toHaveBeenCalledWith('http://localhost:3001/favorites/tt1234567', {
                 method: 'DELETE',
             });
+        });
+
+        it('handles remove from favorites error', async () => {
+            (fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to remove'));
+
+            const { result } = renderHook(() => useRemoveFromFavorites(), {
+                wrapper: createWrapper(),
+            });
+
+            result.current.mutate('tt1234567');
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            expect(result.current.error).toEqual(new Error('Failed to remove'));
         });
     });
 });

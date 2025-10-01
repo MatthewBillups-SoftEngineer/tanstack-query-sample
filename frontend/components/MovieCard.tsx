@@ -22,8 +22,8 @@ export default function MovieCard({ movie }: MovieCardProps) {
 
   return (
     <div className="movie-card">
-      <img 
-        src={movie.Poster} 
+      <img
+        src={movie.Poster} // '/placeholder-poster.png'
         alt={movie.Title}
         className="movie-poster"
         onError={(e) => {
@@ -33,7 +33,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
       <div className="movie-info">
         <h3 className="movie-title">{movie.Title}</h3>
         <p className="movie-year">{movie.Year}</p>
-        <button 
+        <button
           onClick={handleFavoriteToggle}
           className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
           disabled={addToFavorites.isPending || removeFromFavorites.isPending}
