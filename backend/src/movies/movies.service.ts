@@ -14,7 +14,9 @@ export class MoviesService {
   private readonly omdbApiKey = process.env.OMDB_API_KEY || 'demo_key';
   private readonly omdbBaseUrl = 'http://www.omdbapi.com/';
 
-  constructor(private httpService: HttpService) {}
+  constructor(private httpService: HttpService) {
+    console.log('OMDB API Key:', this.omdbApiKey);
+  }
 
   async searchMovies(query: string): Promise<Movie[]> {
     if (!query || query.trim().length === 0) {
