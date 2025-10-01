@@ -51,7 +51,7 @@ export class MoviesService {
           imdbID: movie.imdbID,
           Title: movie.Title,
           Year: movie.Year,
-          Poster: movie.Poster !== 'N/A' ? movie.Poster : '/placeholder-poster.jpg'
+          Poster: movie.Poster !== 'N/A' ? movie.Poster : '/placeholder-poster.png'
         }));
 
         const totalResults = parseInt(response.data.totalResults) || 0;

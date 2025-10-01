@@ -27,7 +27,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
         alt={movie.Title}
         className="movie-poster"
         onError={(e) => {
-          (e.target as HTMLImageElement).src = '/placeholder-poster.jpg'
+          (e.target as HTMLImageElement).src = '/placeholder-poster.png'
         }}
       />
       <div className="movie-info">
