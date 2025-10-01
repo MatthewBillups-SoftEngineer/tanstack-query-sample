@@ -40,11 +40,27 @@ export const useInfiniteSearchMovies = (query: string) => {
     },
     enabled: !!query,
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-// Keep the existing favorites hooks (they remain the same)
+// Keep the existing simple search for comparison (optional)
+export const useSearchMovies = (query: string) => {
+  return useQuery({
+    queryKey: ['search', query],
+    queryFn: async (): Promise<Movie[]> => {
+      if (!query) return [];
+
+      const response = await fetch(`${API_BASE_URL}/movies/search?q=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error('Failed to search movies');
+      const data: SearchResponse = await response.json();
+      return data.movies;
+    },
+    enabled: !!query,
+  });
+};
+
+// Favorites hooks remain the same
 export const useFavorites = () => {
   return useQuery({
     queryKey: ['favorites'],

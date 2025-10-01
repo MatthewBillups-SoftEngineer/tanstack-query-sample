@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useInfiniteSearchMovies, useFavorites } from '../hooks/api';
 import MovieCard from '../components/MovieCard';
 
@@ -6,12 +6,14 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const { data: favorites = [] } = useFavorites();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -28,25 +30,34 @@ export default function SearchPage() {
   // Flatten all movies from all pages
   const allMovies = data?.pages.flatMap(page => page.movies) || [];
 
-  // Intersection Observer for infinite scroll
-  const lastMovieElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage) return;
+  // Set up Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
 
-      const observer = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasNextPage) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
-      });
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.1,
+      }
+    );
 
-      if (node) observer.observe(node);
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
 
-      return () => {
-        if (node) observer.unobserve(node);
-      };
-    },
-    [isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -69,38 +80,28 @@ export default function SearchPage() {
       {isLoading && <div className="loading">Searching movies...</div>}
       {error && <div className="error">Error searching movies: {(error as Error).message}</div>}
 
-      <div className="search-info">
-        {debouncedQuery && data?.pages[0]?.totalResults && (
-          <p className="results-count">
-            Found {data.pages[0].totalResults} results for "{debouncedQuery}"
-          </p>
-        )}
-      </div>
-
       <div className="movies-grid">
         {allMovies.map((movie, index) => {
-          // Attach ref to the last movie element
-          if (index === allMovies.length - 1) {
-            return (
-              <div key={movie.imdbID} ref={lastMovieElementRef}>
-                <MovieCard movie={movie} />
-              </div>
-            );
-          }
-          return <MovieCard key={movie.imdbID} movie={movie} />;
+          // Attach ref to the last movie element for infinite scroll
+          const isLastMovie = index === allMovies.length - 1;
+          return (
+            <div
+              key={movie.imdbID}
+              ref={isLastMovie ? loadMoreRef : null}
+            >
+              <MovieCard movie={movie} />
+            </div>
+          );
         })}
       </div>
 
+      {/* Show loading indicator only for initial load, not for infinite scroll */}
       {isFetchingNextPage && (
-        <div className="loading-more">Loading more movies...</div>
+        <div className="loading">Loading more movies...</div>
       )}
 
-      {debouncedQuery && allMovies.length === 0 && !isLoading && (
-        <div className="no-results">No movies found for "{debouncedQuery}"</div>
-      )}
-
-      {!hasNextPage && allMovies.length > 0 && (
-        <div className="end-of-results">No more movies to load</div>
+      {searchQuery && allMovies.length === 0 && !isLoading && (
+        <div className="no-results">No movies found for "{searchQuery}"</div>
       )}
     </div>
   );
