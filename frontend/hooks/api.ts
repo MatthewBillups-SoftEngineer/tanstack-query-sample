@@ -14,7 +14,8 @@ export interface SearchResponse {
   nextPage?: number;
 }
 
-const API_BASE_URL = 'http://localhost:3001';
+// Use environment variable for API base URL with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 // Infinite scroll search
 export const useInfiniteSearchMovies = (query: string) => {
@@ -28,7 +29,7 @@ export const useInfiniteSearchMovies = (query: string) => {
           hasMore: false
         };
       }
-
+      
       const response = await fetch(
         `${API_BASE_URL}/movies/search?q=${encodeURIComponent(query)}&page=${pageParam}`
       );
@@ -44,13 +45,13 @@ export const useInfiniteSearchMovies = (query: string) => {
   });
 };
 
-// Keep the existing simple search for comparison (optional)
+// Simple search (optional)
 export const useSearchMovies = (query: string) => {
   return useQuery({
     queryKey: ['search', query],
     queryFn: async (): Promise<Movie[]> => {
       if (!query) return [];
-
+      
       const response = await fetch(`${API_BASE_URL}/movies/search?q=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error('Failed to search movies');
       const data: SearchResponse = await response.json();
@@ -60,7 +61,7 @@ export const useSearchMovies = (query: string) => {
   });
 };
 
-// Favorites hooks remain the same
+// Favorites hooks
 export const useFavorites = () => {
   return useQuery({
     queryKey: ['favorites'],
@@ -74,7 +75,7 @@ export const useFavorites = () => {
 
 export const useAddToFavorites = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
     mutationFn: async (movie: Movie) => {
       const response = await fetch(`${API_BASE_URL}/favorites`, {
@@ -92,7 +93,7 @@ export const useAddToFavorites = () => {
 
 export const useRemoveFromFavorites = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
     mutationFn: async (imdbID: string) => {
       const response = await fetch(`${API_BASE_URL}/favorites/${imdbID}`, {

@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "dev:custom": "next dev -p $PORT"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
