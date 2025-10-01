@@ -63,10 +63,16 @@ export default function SearchPage() {
     setSearchQuery(query);
   };
 
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
   return (
     <div className="container">
       <h1>Movie Search</h1>
-
+      
       <div className="search-container">
         <input
           type="text"
@@ -79,14 +85,14 @@ export default function SearchPage() {
 
       {isLoading && <div className="loading">Searching movies...</div>}
       {error && <div className="error">Error searching movies: {(error as Error).message}</div>}
-
+      
       <div className="movies-grid">
         {allMovies.map((movie, index) => {
           // Attach ref to the last movie element for infinite scroll
           const isLastMovie = index === allMovies.length - 1;
           return (
-            <div
-              key={movie.imdbID}
+            <div 
+              key={movie.imdbID} 
               ref={isLastMovie ? loadMoreRef : null}
             >
               <MovieCard movie={movie} />
@@ -95,11 +101,33 @@ export default function SearchPage() {
         })}
       </div>
 
-      {/* Show loading indicator only for initial load, not for infinite scroll */}
+      {/* Show loading indicator when loading more pages */}
       {isFetchingNextPage && (
-        <div className="loading">Loading more movies...</div>
+        <div className="loading-more">
+          <div className="loading-spinner"></div>
+          Loading more movies...
+        </div>
       )}
 
+      {/* Show load more button if there are more pages and not currently loading */}
+      {hasNextPage && !isFetchingNextPage && (
+        <div className="load-more-container">
+          <button 
+            onClick={handleLoadMore}
+            className="load-more-btn"
+          >
+            Load More Movies
+          </button>
+        </div>
+      )}
+
+      {/* Show end message when no more pages */}
+      {!hasNextPage && allMovies.length > 0 && (
+        <div className="end-message">
+          You've seen all the movies!
+        </div>
+      )}
+      
       {searchQuery && allMovies.length === 0 && !isLoading && (
         <div className="no-results">No movies found for "{searchQuery}"</div>
       )}
