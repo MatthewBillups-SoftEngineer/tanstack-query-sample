@@ -4,7 +4,7 @@ import { Movie } from '../movies/movies.service';
 
 @Controller('favorites')
 export class FavoritesController {
-  constructor(private readonly favoritesService: FavoritesService) {}
+  constructor(private readonly favoritesService: FavoritesService) { }
 
   @Get()
   getFavorites(): Movie[] {
